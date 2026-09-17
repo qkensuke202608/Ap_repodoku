@@ -1,1 +1,340 @@
-ここにレポ読アプリをAntigravityで作成予定地
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>レポポ・読！ - 教科書レポート作成ナビ</title>
+  <meta name="description" content="文章が苦手な高校生でもスマホでスイスイ！教科書や長文読解からレポートを作成できるナビゲーションアプリ">
+
+  <!-- ==========================================================================
+       アイコン・Favicon設定 (iOS / Android / PC / Windows 完全対応)
+       ========================================================================== -->
+  <!-- PC / ブラウザ用 Favicon -->
+  <link rel="icon" type="image/png" href="img/repo_doku_icon.png">
+  <link rel="shortcut icon" href="img/repo_doku_icon.png" type="image/png">
+
+  <!-- iOS (iPhone / iPad) ホーム画面追加用アプリアイコン -->
+  <link rel="apple-touch-icon" href="img/repo_doku_icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/repo_doku_icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="レポポ・読！">
+
+  <!-- Android / スマートフォン ホーム画面追加用アイコン & PWA -->
+  <link rel="icon" type="image/png" sizes="192x192" href="img/repo_doku_icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFF5F7">
+
+  <!-- Windows タイル用アイコン -->
+  <meta name="msapplication-TileImage" content="img/repo_doku_icon.png">
+  <meta name="msapplication-TileColor" content="#FFF5F7">
+
+  <!-- スタイルシート分離読み込み -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 通知トーストコンテナ -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <div class="app-shell">
+    <!-- ====================================================================
+         HEADER & BRAND
+         ==================================================================== -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon-wrap">
+          <img src="img/repo_doku_icon.png" alt="レポポ・読！アイコン" class="brand-icon-img">
+        </div>
+        <div class="brand-title-wrap">
+          <h1 class="brand-title">レポポ・読！</h1>
+          <p class="brand-subtitle">教科書・長文読解レポートナビ</p>
+        </div>
+      </div>
+      <button type="button" id="btnLoadSample" class="btn-sample" title="高校生向けの記入例を入力します">
+        <span>🪄</span> 見本を入れる
+      </button>
+    </header>
+
+    <!-- ====================================================================
+         ステップ進行バー (1〜4)
+         ==================================================================== -->
+    <nav class="step-nav" aria-label="手順進行状況">
+      <div class="step-indicators">
+        <div id="stepProgressLine" class="step-progress-line"></div>
+        
+        <button type="button" class="step-tab active" data-step="1">
+          <div class="step-num">1</div>
+          <span class="step-label">抜き出し</span>
+        </button>
+
+        <button type="button" class="step-tab" data-step="2">
+          <div class="step-num">2</div>
+          <span class="step-label">穴埋め</span>
+        </button>
+
+        <button type="button" class="step-tab" data-step="3">
+          <div class="step-num">3</div>
+          <span class="step-label">200字文</span>
+        </button>
+
+        <button type="button" class="step-tab" data-step="4">
+          <div class="step-num">4</div>
+          <span class="step-label">完成・AI</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ====================================================================
+         手順1: 教科書を読み、テーマに沿ったセンテンスを抜き出して書き込む
+         ==================================================================== -->
+    <section id="pageStep1" class="step-page active">
+      <div class="card">
+        <div class="card-title-box">
+          <span class="card-badge badge-step1">手順 1 / 4</span>
+          <h2 class="card-title">教科書からセンテンス抜き出し 📖</h2>
+          <p class="card-desc">教科書や長文を読みながら、ピンときたセンテンスを付箋にポンポン抜き出そう！</p>
+        </div>
+
+        <!-- カテゴリ選択 -->
+        <div class="note-category-picker">
+          <button type="button" class="category-chip cat-theme selected" data-cat="theme">
+            <span>🏷️</span> ① テーマタイトルや見出しの文章
+          </button>
+          <button type="button" class="category-chip cat-learned" data-cat="learned">
+            <span>💡</span> ② わかったこと・理解したこと
+          </button>
+          <button type="button" class="category-chip cat-point" data-cat="point">
+            <span>🎯</span> ③ このテーマで言いたかったこと
+          </button>
+        </div>
+
+        <!-- センテンス入力フォーム & 44px以上の丸型追加ボタン -->
+        <div class="note-input-container">
+          <div class="note-input-wrap">
+            <input type="text" id="noteInput" class="note-input" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独" autocomplete="off">
+          </div>
+          <button type="button" id="btnAddNote" class="btn-circle-add" title="センテンスを追加" aria-label="センテンスを追加">＋</button>
+        </div>
+
+        <!-- 付箋一覧ボードヘッダー -->
+        <div class="sticky-board-header">
+          <span class="board-count" id="notesCountLabel">集めたセンテンス：0件</span>
+          <button type="button" id="btnClearNotes" class="btn-clear-pill">付箋を全クリア</button>
+        </div>
+
+        <!-- 付箋一覧ボード -->
+        <div id="stickyBoard" class="sticky-grid">
+          <div class="empty-notes-hint">
+            <span class="empty-icon">📖✨</span>
+            <strong>まだセンテンスがありません</strong>
+            <span>教科書を読みながら、上の枠に言葉を入力して「＋追加」丸ボタンを押してね！</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         手順2: 教科書レポート・穴埋めテンプレート
+         ==================================================================== -->
+    <section id="pageStep2" class="step-page">
+      <div class="card">
+        <div class="card-title-box">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span class="card-badge badge-step2">手順 2 / 4</span>
+              <h2 class="card-title">穴埋めテンプレートに当てはめる 📋</h2>
+            </div>
+            <button type="button" id="btnClearStep2" class="btn-clear-pill" title="入力枠をすべてリセット">枠をクリア</button>
+          </div>
+          <p class="card-desc">手順1で抜き出した付箋をタップするだけで入力完了！直接キーボードで編集もできます。</p>
+        </div>
+
+        <div class="fill-group-list">
+          <!-- ① テーマ -->
+          <div class="fill-item">
+            <div class="fill-item-header">
+              <span class="fill-tag tag-theme">①</span>
+              <label class="fill-label" for="slotTheme">テーマタイトルや見出しの文章</label>
+            </div>
+            <input type="text" id="slotTheme" class="fill-input" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独">
+            <div class="fill-item-chips-wrap">
+              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
+              <div class="fill-item-chips" data-slot="theme"></div>
+            </div>
+          </div>
+
+          <!-- ② 理解したこと 1 -->
+          <div class="fill-item">
+            <div class="fill-item-header">
+              <span class="fill-tag tag-learned">②</span>
+              <label class="fill-label" for="slotLearned1">理解したこと（1つ目・よく分かったこと）</label>
+            </div>
+            <input type="text" id="slotLearned1" class="fill-input" placeholder="例: 先生が遺書で過去の罪悪感を告白したこと">
+            <div class="fill-item-chips-wrap">
+              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
+              <div class="fill-item-chips" data-slot="learned1"></div>
+            </div>
+          </div>
+
+          <!-- ② 理解したこと 2 (特に印象に残ったこと) -->
+          <div class="fill-item">
+            <div class="fill-item-header">
+              <span class="fill-tag tag-learned">②</span>
+              <label class="fill-label" for="slotLearned2">理解したこと（2つ目・特に印象に残ったこと）</label>
+            </div>
+            <input type="text" id="slotLearned2" class="fill-input" placeholder="例: 親友Kへの裏切りが生涯消えない心のトゲになったこと">
+            <div class="fill-item-chips-wrap">
+              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
+              <div class="fill-item-chips" data-slot="learned2"></div>
+            </div>
+          </div>
+
+          <!-- ② 理解したこと 3 (興味を持ったこと) -->
+          <div class="fill-item">
+            <div class="fill-item-header">
+              <span class="fill-tag tag-learned">②</span>
+              <label class="fill-label" for="slotLearned3">理解したこと（3つ目・興味を持ったこと）</label>
+            </div>
+            <input type="text" id="slotLearned3" class="fill-input" placeholder="例: 明治の終わりと個人の生き方の重なり合い">
+            <div class="fill-item-chips-wrap">
+              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
+              <div class="fill-item-chips" data-slot="learned3"></div>
+            </div>
+          </div>
+
+          <!-- ③ このテーマで言いたかったこと -->
+          <div class="fill-item">
+            <div class="fill-item-header">
+              <span class="fill-tag tag-point">③</span>
+              <label class="fill-label" for="slotPoint">このテーマで言いたかったこと</label>
+            </div>
+            <input type="text" id="slotPoint" class="fill-input" placeholder="例: 誰もが抱える人間の弱さと向き合う誠実さの大切さ">
+            <div class="fill-item-chips-wrap">
+              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
+              <div class="fill-item-chips" data-slot="point"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 穴埋めテンプレート参考プレビュー -->
+        <div class="template-box">
+          <div class="template-header">
+            <span>💡 教科書レポート・穴埋めテンプレート</span>
+          </div>
+          <div class="template-content" id="templatePreviewText">
+            今回の授業動画では、<span class="template-slot">【①テーマ】</span>について学びました。教科書を読んでみて、<span class="template-slot">【②理解したこと】</span>ことがよく分かりました。そして特に印象に残ったのは、<span class="template-slot">【②理解したこと】</span>です。また、<span class="template-slot">【②理解したこと】</span>について興味を持ち、もっと調べてみようと思いました。<span class="template-slot">【①テーマ】</span>で言いたかったことは、<span class="template-slot">【③このテーマで言いたかったこと】</span>ではないかと私は思いました。今後も勉強していきたいと思います。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         手順3: 箇条書きを元に、200字以内の文章を作ってみる
+         ==================================================================== -->
+    <section id="pageStep3" class="step-page">
+      <div class="card">
+        <div class="card-title-box">
+          <span class="card-badge badge-step3">手順 3 / 4</span>
+          <h2 class="card-title">200字以内の文章を作ってみる ✍️</h2>
+          <p class="card-desc">穴埋めテンプレートから自動生成されました！文字数を見ながら自由に編集できます。</p>
+        </div>
+
+        <!-- 文字数カウンター & プログレス -->
+        <div class="counter-banner">
+          <div class="counter-info">
+            <span id="charCount" class="counter-val">0</span>
+            <span class="counter-limit">/ 200 字</span>
+          </div>
+          <span id="charStatusBadge" class="counter-status-badge">文字を入力してね ✏️</span>
+        </div>
+
+        <div class="char-progress-track">
+          <div id="charProgressFill" class="char-progress-fill"></div>
+        </div>
+
+        <!-- レポートテキストエリア -->
+        <div class="report-textarea-wrap">
+          <textarea id="reportTextarea" class="report-textarea" placeholder="手順2の内容をもとに、ここに200字のレポート文章が自動で入ります。直接編集もできます！"></textarea>
+        </div>
+
+        <!-- エディタ補助ボタン（丸角カプセル・44px以上） -->
+        <div class="editor-assist-bar">
+          <button type="button" id="btnClearStep3" class="btn-assist" title="文章をクリア">
+            <span>🗑️</span> クリア
+          </button>
+          <button type="button" id="btnCopyStep3" class="btn-assist" title="文章をコピー">
+            <span>📋</span> コピー
+          </button>
+          <button type="button" id="btnFit200" class="btn-assist" title="文章が200字を超えた場合に自動調整">
+            <span>✂️</span> 200字以内に調整
+          </button>
+          <button type="button" id="btnRegenerate" class="btn-assist" title="箇条書きの内容からもう一度組み立てる">
+            <span>🔄</span> 箇条書きから再生成
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         手順4: ChatGPTを開く・コピー・保存
+         ==================================================================== -->
+    <section id="pageStep4" class="step-page">
+      <div class="card">
+        <div class="card-title-box">
+          <span class="card-badge badge-step4">手順 4 / 4</span>
+          <h2 class="card-title">完成！ChatGPT添削 & コピー 🚀</h2>
+          <p class="card-desc">できた文章をコピーしたり、ChatGPTに「もっと良い表現にして！」と添削してもらおう！</p>
+        </div>
+
+        <!-- 完成レポートプレビュー -->
+        <div class="export-preview-card">
+          <div class="export-preview-header">
+            <span class="export-preview-title">完成したレポート</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="exportCharCount" style="font-size: 11.5px; font-weight: 800; color: var(--text-sub);">0字</span>
+              <button type="button" id="btnCopyFromHeader" class="btn-sample" style="min-height: 38px; padding: 4px 12px; font-size: 11.5px; border-radius: 19px;">📋 コピー</button>
+            </div>
+          </div>
+          <div id="exportPreviewBox" class="export-preview-box">（手順3で文章を作成するとここにプレビューされます）</div>
+        </div>
+
+        <!-- アプリ連携ガイドカード -->
+        <div class="action-cards-grid">
+          <!-- ChatGPTカード -->
+          <div class="action-card" id="btnOpenChatGPT" style="cursor: pointer;">
+            <div class="action-card-icon action-icon-chatgpt">🤖</div>
+            <div class="action-card-text">
+              <div class="action-card-title">ChatGPTで添削する</div>
+              <div class="action-card-desc">添削プロンプトを自動コピーしてChatGPTを開きます。貼り付けるだけでアドバイスがもらえます！</div>
+            </div>
+          </div>
+
+          <!-- メモ帳・共有カード -->
+          <div class="action-card" id="btnShareMemo" style="cursor: pointer;">
+            <div class="action-card-icon action-icon-memo">📱</div>
+            <div class="action-card-text">
+              <div class="action-card-title">メモ帳アプリ・LINEへ送る</div>
+              <div class="action-card-desc">スマホの純正メモアプリ、LINE、Google Keepなどに1タップで保存・共有できます。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /app-shell -->
+
+  <!-- ====================================================================
+       BOTTOM ACTION DOCK (Apple風丸型ボタン 60px以上)
+       各ステップに応じて最適なボタンを表示
+       ==================================================================== -->
+  <div class="bottom-action-dock">
+    <div class="dock-content" id="dockContent">
+      <!-- JavaScriptで動的生成 -->
+    </div>
+  </div>
+
+  <!-- スクリプト分離読み込み -->
+  <script src="js/app.js"></script>
+</body>
+</html>
