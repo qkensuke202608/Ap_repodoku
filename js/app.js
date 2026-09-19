@@ -7,14 +7,12 @@
   'use strict';
 
   // --- STORAGE KEYS ---
-  const STORAGE_KEY = 'repopodoku_data_v1';
+  const STORAGE_KEY = 'repopodoku_data_v2';
 
   // --- APP STATE ---
   const state = {
     currentStep: 1,
-    selectedCategory: 'theme', // 'theme' | 'learned' | 'point'
-    notes: [], // [{ id, text, cat }]
-    // 手順2の穴埋めスロット
+    // 手順1・手順2で共有するスロット
     slots: {
       theme: '',
       learned1: '',
@@ -27,20 +25,11 @@
 
   // 高校生向けサンプル見本データ（現代文教科書・長文読解の例）
   const SAMPLE_DATA = {
-    notes: [
-      { id: 'sample-1', text: '夏目漱石の代表作『こころ』における近代人の孤立', cat: 'theme' },
-      { id: 'sample-2', text: '先生が遺書を通じて打ち明けた過去の罪悪感とエゴイズム', cat: 'learned' },
-      { id: 'sample-3', text: '親友Kへの裏切りが生涯消えない心のトゲになったこと', cat: 'learned' },
-      { id: 'sample-4', text: '明治という時代の終わりと個人の生き方の重なり合い', cat: 'learned' },
-      { id: 'sample-5', text: '誰もが抱える人間の弱さと向き合う誠実さの大切さ', cat: 'point' }
-    ],
-    slots: {
-      theme: '夏目漱石の代表作『こころ』における近代人の孤立',
-      learned1: '先生が遺書を通じて打ち明けた過去の罪悪感とエゴイズム',
-      learned2: '親友Kへの裏切りが生涯消えない心のトゲになったこと',
-      learned3: '明治という時代の終わりと個人の生き方の重なり合い',
-      point: '誰もが抱える人間の弱さと向き合う誠実さの大切さ'
-    }
+    theme: '夏目漱石『こころ』に見る近代人の孤独とエゴイズム',
+    learned1: '先生が遺書を通じて打ち明けた過去の罪悪感とエゴイズム',
+    learned2: '親友Kへの裏切りが生涯消えない心のトゲになったこと',
+    learned3: '明治という時代の終わりと個人の生き方の重なり合い',
+    point: '誰もが抱える人間の弱さと向き合う誠実さの大切さ'
   };
 
   // --- DOM ELEMENTS ---
@@ -57,28 +46,23 @@
     // 見本投入ボタン
     btnLoadSample: document.getElementById('btnLoadSample'),
 
-    // 手順1 要素
-    categoryChips: document.querySelectorAll('.note-category-picker .category-chip'),
-    noteInput: document.getElementById('noteInput'),
-    btnAddNote: document.getElementById('btnAddNote'),
-    btnClearNotes: document.getElementById('btnClearNotes'),
-    stickyBoard: document.getElementById('stickyBoard'),
-    notesCountLabel: document.getElementById('notesCountLabel'),
+    // 手順1 要素（各項目直下の2行入力欄）
+    step1Inputs: {
+      theme: document.getElementById('step1Theme'),
+      learned1: document.getElementById('step1Learned1'),
+      learned2: document.getElementById('step1Learned2'),
+      learned3: document.getElementById('step1Learned3'),
+      point: document.getElementById('step1Point')
+    },
+    btnClearStep1: document.getElementById('btnClearStep1'),
 
-    // 手順2 要素
+    // 手順2 要素（穴埋めスロット・プレビュー）
     slotInputs: {
       theme: document.getElementById('slotTheme'),
       learned1: document.getElementById('slotLearned1'),
       learned2: document.getElementById('slotLearned2'),
       learned3: document.getElementById('slotLearned3'),
       point: document.getElementById('slotPoint')
-    },
-    chipContainers: {
-      theme: document.querySelector('.fill-item-chips[data-slot="theme"]'),
-      learned1: document.querySelector('.fill-item-chips[data-slot="learned1"]'),
-      learned2: document.querySelector('.fill-item-chips[data-slot="learned2"]'),
-      learned3: document.querySelector('.fill-item-chips[data-slot="learned3"]'),
-      point: document.querySelector('.fill-item-chips[data-slot="point"]')
     },
     templatePreviewText: document.getElementById('templatePreviewText'),
     btnClearStep2: document.getElementById('btnClearStep2'),
@@ -111,9 +95,7 @@
   function init() {
     loadFromLocalStorage();
     setupEventListeners();
-    renderStep1Board();
-    updateStep2Chips();
-    updateStep2Inputs();
+    updateInputsFromState();
     updateStep2Preview();
     updateStep3Counter();
     renderBottomDock();
@@ -124,7 +106,6 @@
   function saveToLocalStorage() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        notes: state.notes,
         slots: state.slots,
         reportText: state.reportText
       }));
@@ -138,7 +119,6 @@
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.notes && Array.isArray(parsed.notes)) state.notes = parsed.notes;
         if (parsed.slots) state.slots = { ...state.slots, ...parsed.slots };
         if (typeof parsed.reportText === 'string') state.reportText = parsed.reportText;
       }
@@ -180,11 +160,9 @@
     triggerHaptic('light');
     state.currentStep = stepNumber;
 
-    // 手順遷移時の自動処理
+    // 手順遷移時の処理
     if (stepNumber === 2) {
-      autoAssignSlotsIfEmpty();
-      updateStep2Chips();
-      updateStep2Inputs();
+      updateInputsFromState();
       updateStep2Preview();
     } else if (stepNumber === 3) {
       if (!state.reportText.trim()) {
@@ -232,177 +210,13 @@
     });
   }
 
-  // --- STEP 1: 付箋メモ管理 ---
-  function addNote(text, cat) {
-    const trimmed = (text || '').trim();
-    if (!trimmed) {
-      showToast('センテンスを入力してね！', '⚠️');
-      dom.noteInput.focus();
-      return;
-    }
-
-    const newNote = {
-      id: 'note_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-      text: trimmed,
-      cat: cat || state.selectedCategory
-    };
-
-    state.notes.unshift(newNote);
-    saveToLocalStorage();
-    renderStep1Board();
-    updateStep2Chips();
-    triggerHaptic('success');
-    showToast('付箋を追加しました！', '📌');
-
-    dom.noteInput.value = '';
-    dom.noteInput.focus();
-  }
-
-  function deleteNote(id) {
-    triggerHaptic('medium');
-    state.notes = state.notes.filter(n => n.id !== id);
-    saveToLocalStorage();
-    renderStep1Board();
-    updateStep2Chips();
-    showToast('付箋を削除しました', '🗑️');
-  }
-
-  function copyNoteText(text) {
-    copyToClipboard(text, '付箋の文章をコピーしました！');
-  }
-
-  function renderStep1Board() {
-    const notes = state.notes;
-    dom.notesCountLabel.textContent = `集めたセンテンス：${notes.length}件`;
-
-    if (notes.length === 0) {
-      dom.stickyBoard.innerHTML = `
-        <div class="empty-notes-hint">
-          <span class="empty-icon">📖✨</span>
-          <strong>まだセンテンスがありません</strong>
-          <span>教科書を読みながら、上の枠に言葉を入力して「＋追加」丸ボタンを押してね！</span>
-        </div>
-      `;
-      return;
-    }
-
-    const catLabels = {
-      theme: { label: '① テーマ・見出し', class: 'theme-card' },
-      learned: { label: '② わかったこと', class: 'learned-card' },
-      point: { label: '③ 言いたかったこと', class: 'point-card' }
-    };
-
-    let html = '';
-    notes.forEach(note => {
-      const catInfo = catLabels[note.cat] || catLabels.theme;
-      html += `
-        <div class="sticky-card ${catInfo.class}" data-id="${note.id}">
-          <div class="sticky-card-header">
-            <span class="sticky-badge">${catInfo.label}</span>
-            <div class="sticky-card-actions">
-              <button type="button" class="btn-card-circle btn-copy" data-action="copy" title="コピー" aria-label="コピー">📋</button>
-              <button type="button" class="btn-card-circle btn-delete" data-action="delete" title="削除" aria-label="削除">✕</button>
-            </div>
-          </div>
-          <div class="sticky-text">${escapeHtml(note.text)}</div>
-        </div>
-      `;
-    });
-
-    dom.stickyBoard.innerHTML = html;
-
-    // カード内アクションボタンのリスナー紐付け
-    dom.stickyBoard.querySelectorAll('.sticky-card').forEach(card => {
-      const id = card.getAttribute('data-id');
-      const note = state.notes.find(n => n.id === id);
-      if (!note) return;
-
-      const btnCopy = card.querySelector('[data-action="copy"]');
-      const btnDelete = card.querySelector('[data-action="delete"]');
-
-      if (btnCopy) {
-        btnCopy.addEventListener('click', (e) => {
-          e.stopPropagation();
-          copyNoteText(note.text);
-        });
-      }
-      if (btnDelete) {
-        btnDelete.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteNote(id);
-        });
-      }
-    });
-  }
-
-  // --- STEP 2: 穴埋めテンプレート & チップ ---
-  function autoAssignSlotsIfEmpty() {
-    // 手順1の付箋から自動で割り当て（まだ空の場合）
-    const themes = state.notes.filter(n => n.cat === 'theme');
-    const learnedList = state.notes.filter(n => n.cat === 'learned');
-    const points = state.notes.filter(n => n.cat === 'point');
-
-    if (!state.slots.theme && themes.length > 0) state.slots.theme = themes[0].text;
-    if (!state.slots.learned1 && learnedList.length > 0) state.slots.learned1 = learnedList[0].text;
-    if (!state.slots.learned2 && learnedList.length > 1) state.slots.learned2 = learnedList[1].text;
-    if (!state.slots.learned3 && learnedList.length > 2) state.slots.learned3 = learnedList[2].text;
-    if (!state.slots.point && points.length > 0) state.slots.point = points[0].text;
-
-    saveToLocalStorage();
-  }
-
-  function updateStep2Inputs() {
-    if (dom.slotInputs.theme) dom.slotInputs.theme.value = state.slots.theme || '';
-    if (dom.slotInputs.learned1) dom.slotInputs.learned1.value = state.slots.learned1 || '';
-    if (dom.slotInputs.learned2) dom.slotInputs.learned2.value = state.slots.learned2 || '';
-    if (dom.slotInputs.learned3) dom.slotInputs.learned3.value = state.slots.learned3 || '';
-    if (dom.slotInputs.point) dom.slotInputs.point.value = state.slots.point || '';
-  }
-
-  function updateStep2Chips() {
-    // 各スロットごとに、手順1の付箋をチップとして表示
-    const mapping = {
-      theme: state.notes.filter(n => n.cat === 'theme'),
-      learned1: state.notes.filter(n => n.cat === 'learned'),
-      learned2: state.notes.filter(n => n.cat === 'learned'),
-      learned3: state.notes.filter(n => n.cat === 'learned'),
-      point: state.notes.filter(n => n.cat === 'point')
-    };
-
-    Object.keys(dom.chipContainers).forEach(slotKey => {
-      const container = dom.chipContainers[slotKey];
-      if (!container) return;
-
-      const candidates = mapping[slotKey] || [];
-      if (candidates.length === 0) {
-        container.innerHTML = '<span class="item-chips-empty">手順1に該当する付箋がありません（手入力もOK）</span>';
-        return;
-      }
-
-      let html = '';
-      candidates.forEach(c => {
-        const isActive = state.slots[slotKey] === c.text;
-        html += `
-          <button type="button" class="memo-chip ${isActive ? 'chip-active' : ''}" data-slot="${slotKey}" data-text="${escapeHtml(c.text)}">
-            <span>📌</span>
-            <span class="memo-chip-text">${escapeHtml(c.text)}</span>
-          </button>
-        `;
-      });
-      container.innerHTML = html;
-
-      container.querySelectorAll('.memo-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          const slot = chip.getAttribute('data-slot');
-          const text = chip.getAttribute('data-text');
-          triggerHaptic('light');
-          state.slots[slot] = text;
-          if (dom.slotInputs[slot]) dom.slotInputs[slot].value = text;
-          saveToLocalStorage();
-          updateStep2Chips();
-          updateStep2Preview();
-        });
-      });
+  // --- SYNC INPUTS AND PREVIEW ---
+  function updateInputsFromState() {
+    const keys = ['theme', 'learned1', 'learned2', 'learned3', 'point'];
+    keys.forEach(k => {
+      const val = state.slots[k] || '';
+      if (dom.step1Inputs[k]) dom.step1Inputs[k].value = val;
+      if (dom.slotInputs[k]) dom.slotInputs[k].value = val;
     });
   }
 
@@ -562,7 +376,7 @@
     if (step === 1) {
       buttonsHtml = `
         <div class="circle-btn-wrapper">
-          <button type="button" class="btn-circle btn-circle-neutral" id="dockBtnClear1" title="付箋を全クリア" aria-label="全クリア">
+          <button type="button" class="btn-circle btn-circle-neutral" id="dockBtnClear1" title="入力を全クリア" aria-label="全クリア">
             <span class="btn-circle-icon">🗑️</span>
           </button>
           <span class="btn-circle-label">全クリア</span>
@@ -661,12 +475,12 @@
 
     // ドック内丸型ボタンのイベントリスナー
     if (step === 1) {
-      document.getElementById('dockBtnClear1')?.addEventListener('click', confirmClearNotes);
+      document.getElementById('dockBtnClear1')?.addEventListener('click', confirmClearStep1);
       document.getElementById('dockBtnSample1')?.addEventListener('click', loadSampleData);
       document.getElementById('dockBtnNext1')?.addEventListener('click', () => goToStep(2));
     } else if (step === 2) {
       document.getElementById('dockBtnPrev2')?.addEventListener('click', () => goToStep(1));
-      document.getElementById('dockBtnClear2')?.addEventListener('click', clearStep2Slots);
+      document.getElementById('dockBtnClear2')?.addEventListener('click', clearSlots);
       document.getElementById('dockBtnNext2')?.addEventListener('click', () => {
         state.reportText = buildTextFromSlots();
         dom.reportTextarea.value = state.reportText;
@@ -689,27 +503,23 @@
   }
 
   // --- ACTION HELPERS ---
-  function confirmClearNotes() {
-    if (state.notes.length === 0) {
-      showToast('付箋はまだありません', '💡');
+  function confirmClearStep1() {
+    const hasValue = Object.values(state.slots).some(v => (v || '').trim().length > 0);
+    if (!hasValue) {
+      showToast('入力欄はすでに空です', '💡');
       return;
     }
-    if (confirm('抜き出した付箋をすべてクリアしますか？')) {
-      state.notes = [];
-      saveToLocalStorage();
-      renderStep1Board();
-      updateStep2Chips();
-      showToast('付箋を全クリアしました', '🗑️');
+    if (confirm('手順1の入力をすべてクリアしますか？')) {
+      clearSlots();
+      showToast('入力を全クリアしました', '🗑️');
     }
   }
 
-  function clearStep2Slots() {
+  function clearSlots() {
     state.slots = { theme: '', learned1: '', learned2: '', learned3: '', point: '' };
     saveToLocalStorage();
-    updateStep2Inputs();
-    updateStep2Chips();
+    updateInputsFromState();
     updateStep2Preview();
-    showToast('穴埋め枠をリセットしました', '🔄');
   }
 
   function clearStep3Text() {
@@ -723,15 +533,12 @@
   }
 
   function loadSampleData() {
-    state.notes = JSON.parse(JSON.stringify(SAMPLE_DATA.notes));
-    state.slots = JSON.parse(JSON.stringify(SAMPLE_DATA.slots));
+    state.slots = { ...SAMPLE_DATA };
     state.reportText = buildTextFromSlots();
     dom.reportTextarea.value = state.reportText;
 
     saveToLocalStorage();
-    renderStep1Board();
-    updateStep2Chips();
-    updateStep2Inputs();
+    updateInputsFromState();
     updateStep2Preview();
     updateStep3Counter();
 
@@ -762,52 +569,37 @@
     // 見本投入ボタン
     dom.btnLoadSample?.addEventListener('click', loadSampleData);
 
-    // 手順1: カテゴリ切り替え
-    dom.categoryChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        dom.categoryChips.forEach(c => c.classList.remove('selected'));
-        chip.classList.add('selected');
-        state.selectedCategory = chip.getAttribute('data-cat');
-        triggerHaptic('light');
+    // 手順1: 各入力欄のinputイベント
+    const keys = ['theme', 'learned1', 'learned2', 'learned3', 'point'];
+    keys.forEach(k => {
+      const el1 = dom.step1Inputs[k];
+      if (el1) {
+        el1.addEventListener('input', () => {
+          state.slots[k] = el1.value;
+          if (dom.slotInputs[k]) dom.slotInputs[k].value = el1.value;
+          saveToLocalStorage();
+          updateStep2Preview();
+        });
+      }
 
-        // プレースホルダーの動的切り替え
-        if (state.selectedCategory === 'theme') {
-          dom.noteInput.placeholder = '例: 夏目漱石『こころ』に見る近代人の孤独';
-        } else if (state.selectedCategory === 'learned') {
-          dom.noteInput.placeholder = '例: 先生が遺書で過去の罪悪感を告白したこと';
-        } else if (state.selectedCategory === 'point') {
-          dom.noteInput.placeholder = '例: 人間のエゴイズムと葛藤の深さ';
-        }
-      });
-    });
-
-    // 手順1: 追加ボタン・Enterキー
-    dom.btnAddNote?.addEventListener('click', () => {
-      addNote(dom.noteInput.value, state.selectedCategory);
-    });
-
-    dom.noteInput?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addNote(dom.noteInput.value, state.selectedCategory);
+      // 手順2の入力欄とも双方向同期
+      const el2 = dom.slotInputs[k];
+      if (el2) {
+        el2.addEventListener('input', () => {
+          state.slots[k] = el2.value;
+          if (dom.step1Inputs[k]) dom.step1Inputs[k].value = el2.value;
+          saveToLocalStorage();
+          updateStep2Preview();
+        });
       }
     });
 
-    // 手順1: 全クリア
-    dom.btnClearNotes?.addEventListener('click', confirmClearNotes);
-
-    // 手順2: 入力欄のリアルタイム更新
-    Object.keys(dom.slotInputs).forEach(key => {
-      const input = dom.slotInputs[key];
-      if (!input) return;
-      input.addEventListener('input', () => {
-        state.slots[key] = input.value;
-        saveToLocalStorage();
-        updateStep2Preview();
-      });
+    // 手順1 & 手順2のクリアボタン
+    dom.btnClearStep1?.addEventListener('click', confirmClearStep1);
+    dom.btnClearStep2?.addEventListener('click', () => {
+      clearSlots();
+      showToast('穴埋め枠をリセットしました', '🔄');
     });
-
-    dom.btnClearStep2?.addEventListener('click', clearStep2Slots);
 
     // 手順3: テキストエリア編集・カウンター
     dom.reportTextarea?.addEventListener('input', updateStep3Counter);
@@ -840,4 +632,3 @@
   // 起動
   document.addEventListener('DOMContentLoaded', init);
 })();
-
