@@ -88,47 +88,62 @@
     <!-- ====================================================================
          手順1: 教科書を読み、テーマに沿ったセンテンスを抜き出して書き込む
          ==================================================================== -->
+    <!-- ====================================================================
+         手順1: 教科書を読み、各項目に沿ったセンテンスを入力する
+         ==================================================================== -->
     <section id="pageStep1" class="step-page active">
       <div class="card">
         <div class="card-title-box">
-          <span class="card-badge badge-step1">手順 1 / 4</span>
-          <h2 class="card-title">教科書からセンテンス抜き出し 📖</h2>
-          <p class="card-desc">教科書や長文を読みながら、ピンときたセンテンスを付箋にポンポン抜き出そう！</p>
-        </div>
-
-        <!-- カテゴリ選択 -->
-        <div class="note-category-picker">
-          <button type="button" class="category-chip cat-theme selected" data-cat="theme">
-            <span>🏷️</span> ① テーマタイトルや見出しの文章
-          </button>
-          <button type="button" class="category-chip cat-learned" data-cat="learned">
-            <span>💡</span> ② わかったこと・理解したこと
-          </button>
-          <button type="button" class="category-chip cat-point" data-cat="point">
-            <span>🎯</span> ③ このテーマで言いたかったこと
-          </button>
-        </div>
-
-        <!-- センテンス入力フォーム & 44px以上の丸型追加ボタン -->
-        <div class="note-input-container">
-          <div class="note-input-wrap">
-            <input type="text" id="noteInput" class="note-input" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独" autocomplete="off">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span class="card-badge badge-step1">手順 1 / 4</span>
+              <h2 class="card-title">教科書から文章を書き込む 📖</h2>
+            </div>
+            <button type="button" id="btnClearStep1" class="btn-clear-pill" title="入力をすべてクリア">全クリア</button>
           </div>
-          <button type="button" id="btnAddNote" class="btn-circle-add" title="センテンスを追加" aria-label="センテンスを追加">＋</button>
+          <p class="card-desc">教科書や長文を読みながら、各項目に直接文章を書き込もう！2行で長文もスイスイ書けます。</p>
         </div>
 
-        <!-- 付箋一覧ボードヘッダー -->
-        <div class="sticky-board-header">
-          <span class="board-count" id="notesCountLabel">集めたセンテンス：0件</span>
-          <button type="button" id="btnClearNotes" class="btn-clear-pill">付箋を全クリア</button>
-        </div>
+        <div class="step1-input-list">
+          <!-- ① テーマタイトルや見出しの文章 -->
+          <div class="input-block block-theme">
+            <div class="input-block-header">
+              <span class="fill-tag tag-theme">①</span>
+              <label class="fill-label" for="step1Theme">テーマタイトルや見出しの文章</label>
+            </div>
+            <textarea id="step1Theme" class="step1-textarea" rows="2" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独とエゴイズム"></textarea>
+          </div>
 
-        <!-- 付箋一覧ボード -->
-        <div id="stickyBoard" class="sticky-grid">
-          <div class="empty-notes-hint">
-            <span class="empty-icon">📖✨</span>
-            <strong>まだセンテンスがありません</strong>
-            <span>教科書を読みながら、上の枠に言葉を入力して「＋追加」丸ボタンを押してね！</span>
+          <!-- ② わかったこと・理解したこと（3枠） -->
+          <div class="input-block block-learned">
+            <div class="input-block-header">
+              <span class="fill-tag tag-learned">②</span>
+              <label class="fill-label">わかったこと・理解したこと（3つ入力）</label>
+            </div>
+            
+            <div class="learned-sub-item">
+              <span class="sub-num">1</span>
+              <textarea id="step1Learned1" class="step1-textarea" rows="2" placeholder="例: 先生が遺書を通じて打ち明けた過去の罪悪感とエゴイズム"></textarea>
+            </div>
+
+            <div class="learned-sub-item">
+              <span class="sub-num">2</span>
+              <textarea id="step1Learned2" class="step1-textarea" rows="2" placeholder="例: 親友Kへの裏切りが生涯消えない心のトゲになったこと"></textarea>
+            </div>
+
+            <div class="learned-sub-item">
+              <span class="sub-num">3</span>
+              <textarea id="step1Learned3" class="step1-textarea" rows="2" placeholder="例: 明治という時代の終わりと個人の生き方の重なり合い"></textarea>
+            </div>
+          </div>
+
+          <!-- ③ このテーマで言いたかったこと -->
+          <div class="input-block block-point">
+            <div class="input-block-header">
+              <span class="fill-tag tag-point">③</span>
+              <label class="fill-label" for="step1Point">このテーマで言いたかったこと</label>
+            </div>
+            <textarea id="step1Point" class="step1-textarea" rows="2" placeholder="例: 誰もが抱える人間の弱さと向き合う誠実さの大切さ"></textarea>
           </div>
         </div>
       </div>
@@ -147,7 +162,7 @@
             </div>
             <button type="button" id="btnClearStep2" class="btn-clear-pill" title="入力枠をすべてリセット">枠をクリア</button>
           </div>
-          <p class="card-desc">手順1で抜き出した付箋をタップするだけで入力完了！直接キーボードで編集もできます。</p>
+          <p class="card-desc">手順1の内容が自動で入っています！文章の微調整や確認を行おう。</p>
         </div>
 
         <div class="fill-group-list">
@@ -157,50 +172,34 @@
               <span class="fill-tag tag-theme">①</span>
               <label class="fill-label" for="slotTheme">テーマタイトルや見出しの文章</label>
             </div>
-            <input type="text" id="slotTheme" class="fill-input" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独">
-            <div class="fill-item-chips-wrap">
-              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
-              <div class="fill-item-chips" data-slot="theme"></div>
-            </div>
+            <textarea id="slotTheme" class="fill-input fill-textarea" rows="2" placeholder="例: 夏目漱石『こころ』に見る近代人の孤独"></textarea>
           </div>
 
           <!-- ② 理解したこと 1 -->
           <div class="fill-item">
             <div class="fill-item-header">
-              <span class="fill-tag tag-learned">②</span>
+              <span class="fill-tag tag-learned">②-1</span>
               <label class="fill-label" for="slotLearned1">理解したこと（1つ目・よく分かったこと）</label>
             </div>
-            <input type="text" id="slotLearned1" class="fill-input" placeholder="例: 先生が遺書で過去の罪悪感を告白したこと">
-            <div class="fill-item-chips-wrap">
-              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
-              <div class="fill-item-chips" data-slot="learned1"></div>
-            </div>
+            <textarea id="slotLearned1" class="fill-input fill-textarea" rows="2" placeholder="例: 先生が遺書で過去の罪悪感を告白したこと"></textarea>
           </div>
 
           <!-- ② 理解したこと 2 (特に印象に残ったこと) -->
           <div class="fill-item">
             <div class="fill-item-header">
-              <span class="fill-tag tag-learned">②</span>
+              <span class="fill-tag tag-learned">②-2</span>
               <label class="fill-label" for="slotLearned2">理解したこと（2つ目・特に印象に残ったこと）</label>
             </div>
-            <input type="text" id="slotLearned2" class="fill-input" placeholder="例: 親友Kへの裏切りが生涯消えない心のトゲになったこと">
-            <div class="fill-item-chips-wrap">
-              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
-              <div class="fill-item-chips" data-slot="learned2"></div>
-            </div>
+            <textarea id="slotLearned2" class="fill-input fill-textarea" rows="2" placeholder="例: 親友Kへの裏切りが生涯消えない心のトゲになったこと"></textarea>
           </div>
 
           <!-- ② 理解したこと 3 (興味を持ったこと) -->
           <div class="fill-item">
             <div class="fill-item-header">
-              <span class="fill-tag tag-learned">②</span>
+              <span class="fill-tag tag-learned">②-3</span>
               <label class="fill-label" for="slotLearned3">理解したこと（3つ目・興味を持ったこと）</label>
             </div>
-            <input type="text" id="slotLearned3" class="fill-input" placeholder="例: 明治の終わりと個人の生き方の重なり合い">
-            <div class="fill-item-chips-wrap">
-              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
-              <div class="fill-item-chips" data-slot="learned3"></div>
-            </div>
+            <textarea id="slotLearned3" class="fill-input fill-textarea" rows="2" placeholder="例: 明治の終わりと個人の生き方の重なり合い"></textarea>
           </div>
 
           <!-- ③ このテーマで言いたかったこと -->
@@ -209,11 +208,7 @@
               <span class="fill-tag tag-point">③</span>
               <label class="fill-label" for="slotPoint">このテーマで言いたかったこと</label>
             </div>
-            <input type="text" id="slotPoint" class="fill-input" placeholder="例: 誰もが抱える人間の弱さと向き合う誠実さの大切さ">
-            <div class="fill-item-chips-wrap">
-              <div class="fill-item-chips-label"><span>📌</span> 付箋から選んで入力：</div>
-              <div class="fill-item-chips" data-slot="point"></div>
-            </div>
+            <textarea id="slotPoint" class="fill-input fill-textarea" rows="2" placeholder="例: 誰もが抱える人間の弱さと向き合う誠実さの大切さ"></textarea>
           </div>
         </div>
 
