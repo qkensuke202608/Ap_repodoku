@@ -350,141 +350,114 @@ header {
 }
 
 /* ==========================================================================
-   STEP 1: 教科書センテンス抜き出し付箋ボード
+   STEP 1: 教科書センテンス入力（2行入力・項目別配置・②3枠）
    ========================================================================== */
-/* カテゴリピッカー（丸角カプセル・44px以上タッチ対応） */
-.note-category-picker {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
+.step1-input-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   margin-bottom: 14px;
 }
 
-.category-chip {
-  min-height: 44px;
-  padding: 8px 14px;
-  border-radius: 22px;
-  border: 2px solid transparent;
-  background: #F8FAFC;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-sub);
+.input-block {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 14px;
+  border: 1.5px solid #E5E7EB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.input-block-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  user-select: none;
+  margin-bottom: 8px;
 }
 
-.category-chip span {
-  font-size: 16px;
-}
-
-.category-chip:active {
-  transform: scale(0.96);
-}
-
-.category-chip.cat-theme.selected {
-  background: var(--primary-coral-light);
+.block-theme:focus-within {
   border-color: var(--primary-coral);
-  color: var(--primary-coral-dark);
-  box-shadow: 0 4px 12px rgba(255, 90, 121, 0.2);
+  box-shadow: 0 4px 16px rgba(255, 90, 121, 0.15);
 }
 
-.category-chip.cat-learned.selected {
-  background: var(--sky-blue-light);
+.block-learned:focus-within {
   border-color: var(--sky-blue);
-  color: var(--sky-blue-dark);
-  box-shadow: 0 4px 12px rgba(0, 166, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 166, 255, 0.15);
 }
 
-.category-chip.cat-point.selected {
-  background: var(--sunny-yellow-light);
+.block-point:focus-within {
   border-color: var(--sunny-yellow);
-  color: #B45309;
-  box-shadow: 0 4px 12px rgba(255, 179, 0, 0.2);
+  box-shadow: 0 4px 16px rgba(255, 179, 0, 0.15);
 }
 
-/* 入力欄と追加丸ボタン */
-.note-input-container {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.note-input-wrap {
-  flex: 1;
-  position: relative;
-}
-
-.note-input {
+/* 2行入力用テキストエリア（長文もスイスイ入力可能） */
+.step1-textarea,
+.fill-textarea {
   width: 100%;
-  min-height: 48px;
-  padding: 10px 16px;
-  background: #F3F4F6;
-  border: 2px solid transparent;
-  border-radius: 24px;
-  font-size: 14px;
+  min-height: 68px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
   font-weight: 600;
   color: var(--text-main);
   outline: none;
   font-family: inherit;
+  resize: vertical;
   transition: all 0.2s ease;
 }
 
-.note-input:focus {
+.step1-textarea:focus,
+.fill-textarea:focus {
   background: #FFFFFF;
   border-color: var(--primary-coral);
-  box-shadow: 0 0 0 4px rgba(255, 90, 121, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 90, 121, 0.15);
 }
 
-.note-input::placeholder {
+.block-learned .step1-textarea:focus {
+  border-color: var(--sky-blue);
+  box-shadow: 0 0 0 3px rgba(0, 166, 255, 0.15);
+}
+
+.block-point .step1-textarea:focus {
+  border-color: var(--sunny-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 179, 0, 0.15);
+}
+
+.step1-textarea::placeholder,
+.fill-textarea::placeholder {
   color: var(--text-muted);
   font-weight: 500;
 }
 
-/* 48pxの丸型「＋追加」ボタン */
-.btn-circle-add {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
+/* ② わかったこと・理解したこと 3枠用サブラベル */
+.learned-sub-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.learned-sub-item:first-of-type {
+  margin-top: 4px;
+}
+
+.sub-num {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, var(--primary-coral), var(--primary-coral-dark));
-  color: #FFFFFF;
-  font-size: 22px;
-  font-weight: 700;
+  background: var(--sky-blue-light);
+  color: var(--sky-blue-dark);
+  font-size: 11.5px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-glow-coral);
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  outline: none;
-  user-select: none;
-}
-
-.btn-circle-add:active {
-  transform: scale(0.90);
-}
-
-/* ボードヘッダー */
-.sticky-board-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 4px 10px;
-  border-bottom: 1px dashed #E5E7EB;
-  margin-bottom: 12px;
-}
-
-.board-count {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--text-sub);
+  margin-top: 6px;
 }
 
 /* 丸角クリアボタン（44pxタッチターゲット対応） */
@@ -506,138 +479,6 @@ header {
 
 .btn-clear-pill:hover, .btn-clear-pill:active {
   background: #FEE2E2;
-}
-
-/* 付箋リスト */
-.sticky-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 120px;
-}
-
-.empty-notes-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 16px;
-  text-align: center;
-  color: var(--text-muted);
-  gap: 6px;
-}
-
-.empty-icon {
-  font-size: 36px;
-  margin-bottom: 4px;
-  animation: floatIcon 3s ease-in-out infinite;
-}
-
-@keyframes floatIcon {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.empty-notes-hint strong {
-  font-size: 14px;
-  color: var(--text-sub);
-}
-
-.empty-notes-hint span {
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-/* 付箋カード本体 */
-.sticky-card {
-  border-radius: 20px;
-  padding: 12px 14px;
-  position: relative;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: popInCard 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes popInCard {
-  0% { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.sticky-card.theme-card {
-  background: #FFF1F4;
-  border-left: 5px solid var(--primary-coral);
-}
-
-.sticky-card.learned-card {
-  background: #F0F9FF;
-  border-left: 5px solid var(--sky-blue);
-}
-
-.sticky-card.point-card {
-  background: #FFFBEB;
-  border-left: 5px solid var(--sunny-yellow);
-}
-
-.sticky-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sticky-badge {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.theme-card .sticky-badge { background: #FFE4E9; color: var(--primary-coral-dark); }
-.learned-card .sticky-badge { background: #E0F2FE; color: var(--sky-blue-dark); }
-.point-card .sticky-badge { background: #FEF3C7; color: #B45309; }
-
-.sticky-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* 44px以上のタッチターゲットを持つ丸型小ボタン */
-.btn-card-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: var(--text-sub);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-card-circle:active {
-  transform: scale(0.88);
-  background: #FFFFFF;
-}
-
-.btn-card-circle.btn-delete:hover,
-.btn-card-circle.btn-delete:active {
-  color: #EF4444;
-  background: #FEE2E2;
-}
-
-.sticky-text {
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--text-main);
-  word-break: break-word;
 }
 
 /* ==========================================================================
@@ -711,72 +552,6 @@ header {
 .fill-input:focus {
   background: #FFFFFF;
   border-color: var(--sunny-yellow);
-}
-
-/* 付箋から選ぶチップリスト */
-.fill-item-chips-wrap {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #E5E7EB;
-}
-
-.fill-item-chips-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-sub);
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.fill-item-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* チップボタン（丸角カプセル・44px以上の操作感・タップしやすい） */
-.memo-chip {
-  border: 1px solid #E2E8F0;
-  background: #F8FAFC;
-  border-radius: 18px;
-  padding: 6px 12px;
-  min-height: 38px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-main);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  max-width: 100%;
-  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-  user-select: none;
-}
-
-.memo-chip:active {
-  transform: scale(0.93);
-  background: #FFFFFF;
-}
-
-.memo-chip.chip-active {
-  background: var(--sunny-yellow-light);
-  border-color: var(--sunny-yellow);
-  color: #B45309;
-  font-weight: 700;
-}
-
-.memo-chip-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.item-chips-empty {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-style: italic;
 }
 
 /* 穴埋めテンプレートリアルタイムプレビュー */
